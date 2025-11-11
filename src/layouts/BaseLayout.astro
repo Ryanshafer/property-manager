@@ -1,0 +1,43 @@
+---
+import "../styles/global.css";
+
+const {
+  title = "Astro + React + shadcn Prototype",
+  description = "Prototype UI quickly with Astro, React islands, and shadcn/ui.",
+  bodyClass = "",
+  showHeader = true,
+  showFooter = true,
+} = Astro.props;
+---
+
+<html lang="en" class="min-h-dvh bg-background text-foreground antialiased">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <slot name="head" />
+  </head>
+  <body class={`flex min-h-dvh flex-col ${bodyClass}`}>
+    {showHeader && (
+      <header class="border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+        <div class="container flex h-14 items-center justify-between gap-4">
+          <a class="text-sm font-semibold tracking-tight">Astro UI Playground</a>
+          <slot name="actions" />
+        </div>
+      </header>
+    )}
+    <main class={`flex-1 ${showHeader || showFooter ? "" : "min-h-dvh"}`}>
+      {Astro.slots.has("main") ? <slot name="main" /> : <slot />}
+    </main>
+    {showFooter && (
+      <footer class="border-t border-border bg-background/95">
+        <div class="container flex items-center justify-between py-4 text-xs text-muted-foreground">
+          <span>&copy; {new Date().getFullYear()} Prototypes.</span>
+          <span>Astro · React · shadcn/ui</span>
+        </div>
+      </footer>
+    )}
+    <slot name="scripts" />
+  </body>
+</html>

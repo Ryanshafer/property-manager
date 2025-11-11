@@ -1,0 +1,14 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import AppShell from "@/components/AppShell";
+---
+
+<BaseLayout
+  title="Ostuni House — Guest App"
+  description="Mobile-first guest companion for vacation rental stays."
+  bodyClass="bg-background"
+  showHeader={false}
+  showFooter={false}
+>
+  <AppShell slot="main" client:load />
+</BaseLayout>

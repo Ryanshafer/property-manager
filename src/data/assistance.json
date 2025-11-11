@@ -1,0 +1,71 @@
+{
+  "emergency": {
+    "type": "phone",
+    "label": "Get Emergency Help",
+    "value": "+112",
+    "action": "tel:+112",
+    "primary": true
+  },
+  "contacts": [
+    {
+      "id": "manager",
+      "name": "Gianrico Amati",
+      "role": "Property Manager",
+      "availability": "Always available",
+      "photo": "https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=240&q=80",
+      "channels": [
+        {
+          "type": "whatsapp",
+          "label": "WhatsApp",
+          "value": "+39 349 887 2213",
+          "action": "https://wa.me/393498872213",
+          "primary": true
+        },
+        {
+          "type": "phone",
+          "label": "Phone",
+          "value": "+39 349 887 2213",
+          "action": "tel:+393498872213"
+        },
+        {
+          "type": "email",
+          "label": "Email",
+          "value": "gianrico.amati@email.com",
+          "action": "mailto:gianrico.amati@email.com"
+        }
+      ]
+    },
+    {
+      "id": "owner",
+      "name": "Sarah Johnson",
+      "role": "Property Owner",
+      "availability": "9:00-21:00  M-F",
+      "photo": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=240",
+      "channels": [
+        {
+          "type": "whatsapp",
+          "label": "WhatsApp",
+          "value": "+39 (555) 111-2222",
+          "action": "https://wa.me/395551112222",
+          "primary": true
+        },
+        {
+          "type": "phone",
+          "label": "Phone",
+          "value": "+39 (555) 111-2222",
+          "action": "tel:+395551112222"
+        },
+        {
+          "type": "email",
+          "label": "Email",
+          "value": "sarah.johnson@email.com",
+          "action": "mailto:sarah.johnson@email.com"
+        }
+      ]
+    }
+  ],
+  "supportTips": [
+    "Share photos/videos for faster fixes.",
+    "Include reservation code ‘OS-9042’ for any vendor call."
+  ]
+}
