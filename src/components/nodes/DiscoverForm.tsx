@@ -15,6 +15,23 @@ declare global {
   }
 }
 
+type GeocoderStatus =
+  | "OK"
+  | "ZERO_RESULTS"
+  | "ERROR"
+  | "INVALID_REQUEST"
+  | "OVER_QUERY_LIMIT"
+  | "REQUEST_DENIED"
+  | "UNKNOWN_ERROR";
+
+type PlacesServiceStatus =
+  | "OK"
+  | "ZERO_RESULTS"
+  | "INVALID_REQUEST"
+  | "OVER_QUERY_LIMIT"
+  | "REQUEST_DENIED"
+  | "UNKNOWN_ERROR";
+
 export type DiscoverFormProps = {
   value: DiscoverCard[];
   onChange: (cards: DiscoverCard[]) => void;
@@ -93,15 +110,17 @@ const DiscoverForm = ({ value, onChange, coordinates, location, readOnly = false
 
     let cancelled = false;
     const geocoder = new mapsApi.maps.Geocoder();
-    geocoder.geocode({ address: location }, (results, status) => {
+    const geocodeCallback: GeocodeCallback = (results, status) => {
       if (cancelled) return;
-      if (status === mapsApi.maps.GeocoderStatus.OK && results?.[0]?.geometry?.location) {
+      if (status === "OK" && results?.[0]?.geometry?.location) {
         const loc = results[0].geometry.location;
         setSearchCenter({ lat: loc.lat(), lng: loc.lng() });
       } else {
         setSearchCenter(FALLBACK_COORDINATES);
       }
-    });
+    };
+
+    geocoder.geocode({ address: location }, geocodeCallback);
 
     return () => {
       cancelled = true;
@@ -114,21 +133,20 @@ const DiscoverForm = ({ value, onChange, coordinates, location, readOnly = false
     if (!missing.length) return;
 
     let cancelled = false;
-    missing.forEach((placeId) => {
-      placesService.getDetails(
-        { placeId, fields: ["name", "formatted_address"] },
-        (result, status) => {
-          if (cancelled) return;
-          if (status !== mapsApi.maps.places.PlacesServiceStatus.OK || !result) return;
-          setPlaceMeta((prev) => ({
-            ...prev,
-            [placeId]: {
-              name: result.name,
-              address: result.formatted_address,
-            },
-          }));
+    const handlePlaceSummary = (placeId: string): PlaceDetailsCallback => (result, status) => {
+      if (cancelled) return;
+      if (status !== "OK" || !result) return;
+      setPlaceMeta((prev) => ({
+        ...prev,
+        [placeId]: {
+          name: result.name,
+          address: result.formatted_address,
         },
-      );
+      }));
+    };
+
+    missing.forEach((placeId) => {
+      placesService.getDetails({ placeId, fields: ["name", "formatted_address"] }, handlePlaceSummary(placeId));
     });
 
     return () => {
@@ -161,53 +179,46 @@ const DiscoverForm = ({ value, onChange, coordinates, location, readOnly = false
       radius: searchRadiusKm * 1000,
     });
 
+    const handlePredictions: PredictionsCallback = (predictions, status) => {
+      setLoading(false);
+      if (!mapsApi) return;
+      if (status !== "OK" && status !== "ZERO_RESULTS") {
+        setError("Google Places could not complete the search. Try another keyword.");
+        setResults([]);
+        return;
+      }
+      const baseResults = (predictions || []).map((prediction) => ({
+        place_id: prediction.place_id,
+        description: prediction.description,
+        primary_text: prediction.structured_formatting?.main_text || prediction.description,
+        photos: [],
+      }));
+      setResults(baseResults);
+
+      if (!placesService) return;
+      const handlePhotos = (placeId: string): PlaceDetailsCallback => (detail, detailStatus) => {
+        if (!mapsApi) return;
+        if (detailStatus !== "OK" || !detail?.photos?.length) return;
+        const photoUrls = detail.photos.map((photo) => photo.getUrl({ maxWidth: 640, maxHeight: 640 })).filter(Boolean);
+        const thumb = detail.photos[0]?.getUrl({ maxWidth: 120, maxHeight: 120 });
+        setResults((prev) =>
+          prev.map((item) =>
+            item.place_id === placeId ? { ...item, photoUrl: thumb || item.photoUrl, photos: photoUrls } : item,
+          ),
+        );
+      };
+
+      baseResults.forEach((result) => {
+        placesService.getDetails({ placeId: result.place_id, fields: ["photos"] }, handlePhotos(result.place_id));
+      });
+    };
+
     autocompleteService.getPlacePredictions(
       {
         input: location ? `${trimmed} near ${location}` : trimmed,
         locationBias,
       },
-      (predictions, status) => {
-        setLoading(false);
-        if (!mapsApi) return;
-        if (
-          status !== mapsApi.maps.places.PlacesServiceStatus.OK &&
-          status !== mapsApi.maps.places.PlacesServiceStatus.ZERO_RESULTS
-        ) {
-          setError("Google Places could not complete the search. Try another keyword.");
-          setResults([]);
-          return;
-        }
-        const baseResults = (predictions || []).map((prediction) => ({
-          place_id: prediction.place_id,
-          description: prediction.description,
-          primary_text: prediction.structured_formatting?.main_text || prediction.description,
-          photos: [],
-        }));
-        setResults(baseResults);
-
-        if (placesService) {
-          baseResults.forEach((result) => {
-            placesService.getDetails(
-              { placeId: result.place_id, fields: ["photos"] },
-              (detail, detailStatus) => {
-                if (!mapsApi) return;
-                if (detailStatus !== mapsApi.maps.places.PlacesServiceStatus.OK || !detail?.photos?.length) return;
-                const photoUrls = detail.photos
-                  .map((photo) => photo.getUrl({ maxWidth: 640, maxHeight: 640 }))
-                  .filter(Boolean);
-                const thumb = detail.photos[0]?.getUrl({ maxWidth: 120, maxHeight: 120 });
-                setResults((prev) =>
-                  prev.map((item) =>
-                    item.place_id === result.place_id
-                      ? { ...item, photoUrl: thumb || item.photoUrl, photos: photoUrls }
-                      : item,
-                  ),
-                );
-              },
-            );
-          });
-        }
-      },
+      handlePredictions,
     );
   };
 
@@ -479,6 +490,37 @@ interface GooglePrediction {
   photoUrl?: string;
   photos?: string[];
 }
+
+type GoogleAutocompletePrediction = {
+  place_id: string;
+  description: string;
+  structured_formatting?: {
+    main_text?: string;
+  };
+};
+
+type GeocoderResult = {
+  geometry?: {
+    location?: {
+      lat: () => number;
+      lng: () => number;
+    };
+  };
+};
+
+type PlacePhoto = {
+  getUrl: (options: { maxWidth: number; maxHeight: number }) => string;
+};
+
+type PlaceDetailsResult = {
+  name?: string;
+  formatted_address?: string;
+  photos?: PlacePhoto[];
+};
+
+type GeocodeCallback = (results: GeocoderResult[] | null, status: GeocoderStatus) => void;
+type PlaceDetailsCallback = (result: PlaceDetailsResult | null, status: PlacesServiceStatus) => void;
+type PredictionsCallback = (predictions: GoogleAutocompletePrediction[] | null, status: PlacesServiceStatus) => void;
 
 interface PlaceSummary {
   name?: string;

@@ -43,8 +43,10 @@ export type Assistance = {
   }>;
 };
 
+export type ContactChannelType = "phone" | "sms" | "email" | "whatsapp";
+
 export type ContactChannel = {
-  type: string;
+  type: ContactChannelType;
   label: string;
   value: string;
   action?: string;
@@ -111,6 +113,18 @@ export type SessionUser = {
   accessLevel: AccessLevel;
   email?: string;
 };
+
+export type SessionPermissions = {
+  isAdmin: boolean;
+  isEditor: boolean;
+  isViewer: boolean;
+  canEditContent: boolean;
+  canAddEntities: boolean;
+  canManageUsers: boolean;
+  canDeleteEntities: boolean;
+};
+
+export type SaveUserInput = Omit<User, "id"> & { id?: string };
 
 export type AdminState = {
   authed: boolean;

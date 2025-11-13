@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, type ReactElement } from "react";
 
 import Fieldset from "@/components/nodes/Fieldset";
 import FormRow from "@/components/nodes/FormRow";
@@ -37,11 +37,11 @@ const RuleIconSelector = ({
 }: {
   value?: string;
   onSelect: (icon: string) => void;
-  children: React.ReactNode;
+  children: ReactElement;
   disabled?: boolean;
 }) => {
   if (disabled) {
-    return children as JSX.Element;
+    return children;
   }
   const [open, setOpen] = useState(false);
 

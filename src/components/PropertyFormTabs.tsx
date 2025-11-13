@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FC, type ReactElement } from "react";
 
 import AssistanceForm from "@/components/nodes/AssistanceForm";
 import DiscoverForm from "@/components/nodes/DiscoverForm";
@@ -12,13 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Property } from "@/features/admin/types";
 import { Trash2 } from "lucide-react";
 
-export type PropertyFormTabsProps = {
+export interface PropertyFormTabsProps {
   value: Property;
   onNodeChange: <K extends keyof Property>(node: K, data: Property[K]) => void;
   onDeleteRequest: () => void;
   readOnly?: boolean;
   canDelete?: boolean;
-};
+}
 
 type TabRenderArgs = {
   property: Property;
@@ -31,7 +31,7 @@ type TabRenderArgs = {
 const tabs: Array<{
   id: string;
   label: string;
-  render: (args: TabRenderArgs) => JSX.Element;
+  render: (args: TabRenderArgs) => ReactElement;
 }> = [
   {
     id: "welcome",
@@ -102,7 +102,13 @@ const tabs: Array<{
   },
 ];
 
-const PropertyFormTabs = ({ value, onNodeChange, onDeleteRequest, readOnly, canDelete }: PropertyFormTabsProps) => {
+const PropertyFormTabs: FC<PropertyFormTabsProps> = ({
+  value,
+  onNodeChange,
+  onDeleteRequest,
+  readOnly,
+  canDelete,
+}) => {
   const [activeTab, setActiveTab] = useState("welcome");
 
   return (

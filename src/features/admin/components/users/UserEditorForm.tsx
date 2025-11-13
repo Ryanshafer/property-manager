@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { Clock, MoreVertical, PencilLine, Plus, Star, Trash2, Upload } from "lucide-react";
 
+import Fieldset from "@/components/nodes/Fieldset";
+import FormRow from "@/components/nodes/FormRow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -403,86 +405,79 @@ const UserEditorForm = ({
 
   return (
     <>
-      <section className="space-y-6 rounded-2xl border border-border bg-card/80 p-4 shadow-sm md:p-6">
+      <Fieldset title="User details" description="Profile photo, role, and permissions." contentClassName="space-y-4">
         <div className="grid gap-6 md:grid-cols-[220px,1fr]">
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
               <Avatar className="h-28 w-28">
                 {value.photo ? <AvatarImage src={value.photo} alt={value.name} className="object-cover" /> : null}
-              <AvatarFallback className="bg-muted text-2xl font-semibold text-ink-strong">
-                {getInitials(value.name)}
-              </AvatarFallback>
-            </Avatar>
-            {avatarEditable && (
-              <Button
-                type="button"
-                size="icon"
-                variant="secondary"
-                className="absolute bottom-1 right-1 h-9 w-9 rounded-full shadow"
-                onClick={openAvatarDialog}
-              >
-                <PencilLine className="h-4 w-4" />
-              </Button>
-            )}
+                <AvatarFallback className="bg-muted text-2xl font-semibold text-ink-strong">
+                  {getInitials(value.name)}
+                </AvatarFallback>
+              </Avatar>
+              {avatarEditable && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="secondary"
+                  className="absolute bottom-1 right-1 h-9 w-9 rounded-full shadow"
+                  onClick={openAvatarDialog}
+                >
+                  <PencilLine className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <p className="text-sm text-ink-muted">Profile photo</p>
           </div>
-          <p className="text-sm text-ink-muted text-center">Profile photo</p>
-        </div>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Name</Label>
-            <Input
-              value={value.name}
-              onChange={(event) =>
-                update({ name: event.target.value }, { bypassReadOnly: readOnly && canEditName })
-              }
-              disabled={readOnly && !canEditName}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Role</Label>
-            <Select value={value.role || undefined} onValueChange={(role) => update({ role })} disabled={readOnly}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select role" />
-              </SelectTrigger>
-              <SelectContent>
-                {roleOptions.map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {role}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Access level</Label>
-            <fieldset disabled={readOnly || !canEditAccessLevel} className="contents">
-              <Select
-                value={value.accessLevel}
-                onValueChange={(accessLevel: User["accessLevel"]) => {
-                  if (readOnly || !canEditAccessLevel) return;
-                  update({ accessLevel });
-                }}
-              >
+          <div className="space-y-4">
+            <FormRow label="Name">
+              <Input
+                value={value.name}
+                onChange={(event) => update({ name: event.target.value }, { bypassReadOnly: readOnly && canEditName })}
+                disabled={readOnly && !canEditName}
+              />
+            </FormRow>
+            <FormRow label="Role">
+              <Select value={value.role || undefined} onValueChange={(role) => update({ role })} disabled={readOnly}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select access" />
+                  <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
+                  {roleOptions.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {role}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-            </fieldset>
-          </div>
+            </FormRow>
+            <FormRow label="Access level">
+              <fieldset disabled={readOnly || !canEditAccessLevel} className="contents">
+                <Select
+                  value={value.accessLevel}
+                  onValueChange={(accessLevel: User["accessLevel"]) => {
+                    if (readOnly || !canEditAccessLevel) return;
+                    update({ accessLevel });
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select access" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </fieldset>
+            </FormRow>
           </div>
         </div>
+      </Fieldset>
 
-        <div className="space-y-3 rounded-2xl border border-dashed border-border p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-ink-strong">Availability</p>
-            <p className="text-xs text-ink-muted">Set the hours this teammate is reachable.</p>
-          </div>
+      <Fieldset title="Availability" description="Define when this teammate can be reached.">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm text-ink-muted">Set the hours this teammate is reachable.</p>
           <label className="flex items-center gap-2 text-sm text-ink-strong">
             <input
               type="checkbox"
@@ -496,7 +491,7 @@ const UserEditorForm = ({
         </div>
 
         {!value.availability.always && (
-          <>
+          <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2">
               <TimePickerField
                 label="Start time"
@@ -535,10 +530,10 @@ const UserEditorForm = ({
                 })}
               </div>
             </div>
-          </>
+          </div>
         )}
-        </div>
-      </section>
+      </Fieldset>
+
       <Dialog
         open={avatarDialogOpen}
         onOpenChange={(open) => {

@@ -1,6 +1,15 @@
 import propertiesData from "@/data/properties.json";
 import usersData from "@/data/users.json";
-import type { AccessLevel, AvailabilitySchedule, Property, User, Weekday } from "./types";
+import type {
+  AccessLevel,
+  AvailabilitySchedule,
+  ContactChannel,
+  Property,
+  SaveUserInput,
+  SessionPermissions,
+  User,
+  Weekday,
+} from "./types";
 
 type RawProperty = Property & Record<string, unknown>;
 type RawUser = Omit<User, "accessLevel" | "managedPropertyIds" | "availability"> & {
@@ -8,6 +17,9 @@ type RawUser = Omit<User, "accessLevel" | "managedPropertyIds" | "availability">
   managedPropertyIds?: string[];
   availability?: AvailabilitySchedule | string;
 };
+
+export const DEFAULT_COORDINATES = Object.freeze({ lat: 41.9028, lng: 12.4964 });
+export const WEEK_DAYS: readonly Weekday[] = Object.freeze(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]);
 
 export const initialProperties: Property[] = (propertiesData as RawProperty[]).map((property) => ({
   ...property,
@@ -39,8 +51,6 @@ const deriveRoleOptions = () => {
 
 export const ROLE_OPTIONS = deriveRoleOptions();
 
-const WEEK_DAYS: Weekday[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
 const normalizeAvailability = (availability?: AvailabilitySchedule | string): AvailabilitySchedule => {
   if (availability && typeof availability === "object" && "always" in availability) {
     return {
@@ -65,6 +75,44 @@ export const initialUsers: User[] = (usersData as RawUser[]).map((user) => ({
   managedPropertyIds: user.managedPropertyIds ?? [],
 }));
 
+export const normalizeChannels = (channels: ContactChannel[] = []): ContactChannel[] => {
+  if (channels.length === 0) return [];
+  const hasPrimary = channels.some((channel) => channel.primary);
+  return channels.map((channel, index) => ({
+    ...channel,
+    primary: hasPrimary ? Boolean(channel.primary) : index === 0,
+  }));
+};
+
+export const buildUser = (input: SaveUserInput): User => ({
+  id: input.id ?? `user-${Date.now().toString(36)}`,
+  name: input.name?.trim() || "New teammate",
+  role: input.role?.trim() || "Team member",
+  availability: normalizeAvailability(input.availability),
+  photo: input.photo?.trim(),
+  channels: normalizeChannels(input.channels ?? []),
+  accessLevel: input.accessLevel ?? deriveAccessLevel(input.role),
+  managedPropertyIds: input.managedPropertyIds ?? [],
+});
+
+export const ensureManagerAssignments = (users: User[], properties: Property[]): User[] => {
+  const managerCandidates = users.filter((user) => isPropertyManagerRole(user.role));
+  if (managerCandidates.length !== 1) {
+    return users;
+  }
+  const propertyIds = properties.map((property) => property.id);
+  return users.map((user) => {
+    if (user.id !== managerCandidates[0].id) return user;
+    const currentIds = user.managedPropertyIds || [];
+    const alreadyHasAll = currentIds.length === propertyIds.length && propertyIds.every((id) => currentIds.includes(id));
+    if (alreadyHasAll) return user;
+    return {
+      ...user,
+      managedPropertyIds: propertyIds,
+    };
+  });
+};
+
 export const slugify = (value: string) =>
   value
     .toLowerCase()
@@ -80,7 +128,7 @@ export const createEmptyProperty = (
     id: `${slugify(options.name)}-${Date.now().toString(36)}`,
     name: options.name.trim() || "Untitled property",
     location: options.location,
-    coordinates: { lat: 41.9028, lng: 12.4964 },
+    coordinates: { ...DEFAULT_COORDINATES },
     welcome: {
       heroImage: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267",
       host: {
@@ -160,4 +208,14 @@ export const getUserSlug = (user: Pick<User, "name" | "id">) => {
   return base || user.id || "user";
 };
 
-export { WEEK_DAYS, normalizeAvailability };
+export const derivePermissions = (accessLevel: AccessLevel = "viewer"): SessionPermissions => ({
+  isAdmin: accessLevel === "admin",
+  isEditor: accessLevel === "editor",
+  isViewer: accessLevel === "viewer",
+  canEditContent: accessLevel !== "viewer",
+  canAddEntities: accessLevel === "admin",
+  canManageUsers: accessLevel === "admin",
+  canDeleteEntities: accessLevel === "admin",
+});
+
+export { normalizeAvailability };

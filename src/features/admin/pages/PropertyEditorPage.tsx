@@ -139,8 +139,6 @@ const PropertyEditorPage = () => {
             value={draft}
             onNodeChange={handleNodeChange}
             onDeleteRequest={() => setDeleteOpen(true)}
-            readOnly={readOnly}
-            canDelete={canDelete}
           />
         </main>
       </div>

@@ -1,42 +1,22 @@
 import { createContext, useCallback, useContext, useMemo, useReducer, type ReactNode } from "react";
-import type { AdminAction, AdminState, ContactChannel, Property, SessionUser, User } from "@/features/admin/types";
+import type {
+  AdminAction,
+  AdminState,
+  Property,
+  SaveUserInput,
+  SessionPermissions,
+  SessionUser,
+  User,
+} from "@/features/admin/types";
 import {
+  buildUser,
   cloneProperty,
   createEmptyProperty,
-  deriveAccessLevel,
+  derivePermissions,
+  ensureManagerAssignments,
   initialProperties,
   initialUsers,
-  isPropertyManagerRole,
-  normalizeAvailability,
 } from "@/features/admin/utils";
-
-const normalizeChannels = (channels: ContactChannel[] = []): ContactChannel[] => {
-  if (channels.length === 0) return [];
-  const hasPrimary = channels.some((channel) => channel.primary);
-  return channels.map((channel, index) => ({
-    ...channel,
-    primary: hasPrimary ? Boolean(channel.primary) : index === 0,
-  }));
-};
-
-const ensureManagerAssignments = (users: User[], properties: Property[]): User[] => {
-  const managerCandidates = users.filter((user) => isPropertyManagerRole(user.role));
-  if (managerCandidates.length !== 1) {
-    return users;
-  }
-  const propertyIds = properties.map((property) => property.id);
-  return users.map((user) => {
-    if (user.id !== managerCandidates[0].id) return user;
-    const currentIds = user.managedPropertyIds || [];
-    const alreadyHasAll =
-      currentIds.length === propertyIds.length && propertyIds.every((id) => currentIds.includes(id));
-    if (alreadyHasAll) return user;
-    return {
-      ...user,
-      managedPropertyIds: propertyIds,
-    };
-  });
-};
 
 const INITIAL_STATE: AdminState = {
   authed: false,
@@ -162,8 +142,6 @@ function adminReducer(state: AdminState, action: AdminAction): AdminState {
   }
 }
 
-type SaveUserInput = Omit<User, "id"> & { id?: string };
-
 type AdminContextValue = AdminState & {
   login: (user: SessionUser) => void;
   logout: () => void;
@@ -179,15 +157,7 @@ type AdminContextValue = AdminState & {
   addUser: (input: SaveUserInput) => User;
   updateUser: (user: User) => void;
   deleteUserAccount: (id: string) => void;
-  permissions: {
-    isAdmin: boolean;
-    isEditor: boolean;
-    isViewer: boolean;
-    canEditContent: boolean;
-    canAddEntities: boolean;
-    canManageUsers: boolean;
-    canDeleteEntities: boolean;
-  };
+  permissions: SessionPermissions;
 };
 
 const AdminContext = createContext<AdminContextValue | undefined>(undefined);
@@ -198,6 +168,8 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const selectProperty = useCallback((id?: string) => {
     dispatch({ type: "SELECT_PROPERTY", payload: { id } });
   }, []);
+
+  const permissions = useMemo(() => derivePermissions(state.user?.accessLevel), [state.user?.accessLevel]);
 
   const value = useMemo<AdminContextValue>(() => {
     const addProperty = (input: { name: string; location?: string }) => {
@@ -227,17 +199,6 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
 
     const getSelectedProperty = () => state.properties.find((property) => property.id === state.selectedPropertyId);
 
-const buildUser = (input: SaveUserInput): User => ({
-  id: input.id ?? `user-${Date.now().toString(36)}`,
-  name: input.name?.trim() || "New teammate",
-  role: input.role?.trim() || "Team member",
-  availability: normalizeAvailability(input.availability),
-  photo: input.photo?.trim(),
-  channels: normalizeChannels(input.channels ?? []),
-  accessLevel: input.accessLevel ?? deriveAccessLevel(input.role),
-  managedPropertyIds: input.managedPropertyIds ?? [],
-});
-
     const addUserAccount = (input: SaveUserInput) => {
       const user = buildUser(input);
       dispatch({ type: "ADD_USER", payload: { user } });
@@ -248,17 +209,6 @@ const buildUser = (input: SaveUserInput): User => ({
       const user = buildUser(input);
       dispatch({ type: "UPDATE_USER", payload: { user } });
     };
-
-    const accessLevel = state.user?.accessLevel ?? "viewer";
-    const permissions = {
-      isAdmin: accessLevel === "admin",
-      isEditor: accessLevel === "editor",
-      isViewer: accessLevel === "viewer",
-      canEditContent: accessLevel !== "viewer",
-      canAddEntities: accessLevel === "admin",
-      canManageUsers: accessLevel === "admin",
-      canDeleteEntities: accessLevel === "admin",
-    } as const;
 
     return {
       ...state,
@@ -282,7 +232,7 @@ const buildUser = (input: SaveUserInput): User => ({
       deleteUserAccount: (id: string) => dispatch({ type: "DELETE_USER", payload: { id } }),
       permissions,
     };
-  }, [state, selectProperty]);
+  }, [state, selectProperty, permissions]);
 
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>;
 };
