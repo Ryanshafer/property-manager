@@ -3,12 +3,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import LocalGuideAdminApp from "@/components/LocalGuideAdminApp";
 ---
 
-<BaseLayout
-  title="Local Guide Admin"
-  description="Control center for vacation-rental playbooks."
-  bodyClass="bg-background"
-  showHeader={false}
-  showFooter={false}
->
+<BaseLayout title="Login · Local Guide Admin" bodyClass="bg-background" showHeader={false} showFooter={false}>
   <LocalGuideAdminApp slot="main" client:only="react" />
 </BaseLayout>

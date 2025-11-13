@@ -1,0 +1,202 @@
+[
+  {
+    "id": "villa-agrumeto",
+    "name": "Villa Agrumeto",
+    "location": "Ostuni, Puglia",
+    "coordinates": { "lat": 40.7365, "lng": 17.5775 },
+    "welcome": {
+      "heroImage": "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a",
+      "host": {
+        "name": "Marta Bianchi",
+        "title": "Local Host",
+        "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+      },
+      "greeting": "Welcome to your Apulian retreat",
+      "body": [
+        "Relax between citrus trees, stone walls, and the scent of the Mediterranean scrub.",
+        "We prepared guides, tips, and thoughtful touches so you can experience Ostuni like a local."
+      ],
+      "ctaLabel": "Open guest guide"
+    },
+    "rules": [
+      {
+        "id": "quiet-hours",
+        "title": "Quiet hours after 10:30 PM",
+        "details": "Sound travels across the terraces—keep voices and music low late at night.",
+        "icon": "bell"
+      },
+      {
+        "id": "pool",
+        "title": "Pool care",
+        "details": "Rinse feet before entering and cover the pool on windy nights.",
+        "icon": "waves"
+      }
+    ],
+    "wifi": {
+      "networkName": "Agrumeto-Guest",
+      "password": "masserialove",
+      "shareNote": "The QR code in the kitchen connects devices instantly.",
+      "instructions": [
+        "Main router is next to the living room bookshelf.",
+        "If the terrace signal drops, switch on the portable repeater."
+      ]
+    },
+    "discover": [
+      {
+        "id": "ostuni-old-town",
+        "placeId": "ChIJ-dIXDGxPRhMR9BM4Uo5X-VM",
+        "category": "activity",
+        "note": "Evenings are perfect for aperitivo on the terrace."
+      },
+      {
+        "id": "bosco-verde",
+        "placeId": "ChIJy9OChP1PRhMR0gujtnIh2nI",
+        "category": "beach",
+        "note": "Pack the lightweight umbrella from the mudroom."
+      }
+    ],
+    "assistance": {
+      "contacts": [
+        {
+          "role": "Concierge",
+          "name": "Luca",
+          "phone": "+39 333 442 1987",
+          "notes": "Available 8am–10pm for transfers and reservations."
+        },
+        {
+          "role": "Emergency Services",
+          "name": "European emergency number",
+          "phone": "112",
+          "notes": "Already saved in the phone app favorites."
+        }
+      ]
+    },
+    "propertyCare": {
+      "guidelines": [
+        {
+          "id": "general-thermostat",
+          "label": "General",
+          "icon": "sparkles",
+          "accent": {
+            "iconBg": "bg-violet-100",
+            "iconColor": "text-violet-600"
+          },
+          "title": "Thermostat",
+          "description": "Keep set to 22°C/72°F for comfort. Turn off when opening windows or leaving for extended periods."
+        },
+        {
+          "id": "general-water-heater",
+          "label": "General",
+          "icon": "sparkles",
+          "accent": {
+            "iconBg": "bg-violet-100",
+            "iconColor": "text-violet-600"
+          },
+          "title": "Water Heater",
+          "description": "If hot water runs out, wait 30 minutes for tanks to reheat. Reset switch lives in the utility closet."
+        }
+      ]
+    },
+    "updatedAt": "2024-04-12T10:15:00.000Z"
+  },
+  {
+    "id": "casa-limone",
+    "name": "Casa Limone",
+    "location": "Cisternino, Brindisi",
+    "coordinates": { "lat": 40.9556, "lng": 17.3007 },
+    "welcome": {
+      "heroImage": "https://images.unsplash.com/photo-1505691938895-1758d7feb511",
+      "host": {
+        "name": "Alessio & Giulia",
+        "title": "Co-hosts",
+        "avatar": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"
+      },
+      "greeting": "Hello from the house of lemons",
+      "body": [
+        "Bring Puglia's slow rhythm with you.",
+        "Use the dashboard to update experiences, contacts, and handoffs for the on-site team."
+      ],
+      "ctaLabel": "Manage property"
+    },
+    "rules": [
+      {
+        "id": "terrace",
+        "title": "Retractable awnings",
+        "details": "Close them when wind exceeds 25 km/h to avoid damage.",
+        "icon": "wind"
+      },
+      {
+        "id": "glassware",
+        "title": "Vintage glassware",
+        "details": "Use the gentle dishwasher cycle and dry by hand.",
+        "icon": "sparkles"
+      }
+    ],
+    "wifi": {
+      "networkName": "Limone-5G",
+      "password": "citrus2024",
+      "shareNote": "Mesh routers cover both floors of the house.",
+      "instructions": [
+        "Quick reset: hold the side button for 5 seconds.",
+        "Report outages in the #tech-support Slack channel."
+      ]
+    },
+    "discover": [
+      {
+        "id": "porto-nero",
+        "placeId": "ChIJ-dIXDGxPRhMR9BM4Uo5X-VM",
+        "category": "restaurant",
+        "note": "Reserve the terrace table; sunsets are unreal."
+      },
+      {
+        "id": "polignano-boat",
+        "placeId": "ChIJy9OChP1PRhMR0gujtnIh2nI",
+        "category": "activity",
+        "note": "Skipper Marco takes guests into the Grotta Palazzese."
+      }
+    ],
+    "assistance": {
+      "contacts": [
+        {
+          "role": "Housekeeping lead",
+          "name": "Rosa",
+          "phone": "+39 331 996 8421",
+          "email": "rosa@casalimone.it"
+        },
+        {
+          "role": "Maintenance",
+          "name": "Fabrizio",
+          "phone": "+39 333 000 7799",
+          "notes": "Photovoltaic system specialist"
+        }
+      ]
+    },
+    "propertyCare": {
+      "guidelines": [
+        {
+          "id": "general-thermostat",
+          "label": "General",
+          "icon": "sparkles",
+          "accent": {
+            "iconBg": "bg-violet-100",
+            "iconColor": "text-violet-600"
+          },
+          "title": "Thermostat",
+          "description": "Keep set to 22°C/72°F for comfort. Turn off when opening windows or leaving for extended periods."
+        },
+        {
+          "id": "general-water-heater",
+          "label": "General",
+          "icon": "sparkles",
+          "accent": {
+            "iconBg": "bg-violet-100",
+            "iconColor": "text-violet-600"
+          },
+          "title": "Water Heater",
+          "description": "If hot water runs out, wait 30 minutes for tanks to reheat. Reset switch lives in the utility closet."
+        }
+      ]
+    },
+    "updatedAt": "2024-04-05T08:45:00.000Z"
+  }
+]

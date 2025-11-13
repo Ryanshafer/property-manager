@@ -1,0 +1,15 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import LocalGuideAdminApp from "@/components/LocalGuideAdminApp";
+import properties from "@/data/properties.json";
+
+export function getStaticPaths() {
+  return (properties as Array<{ id: string }>).map((property) => ({
+    params: { id: property.id },
+  }));
+}
+---
+
+<BaseLayout title="Property · Local Guide Admin" bodyClass="bg-background" showHeader={false} showFooter={false}>
+  <LocalGuideAdminApp slot="main" client:only="react" />
+</BaseLayout>

@@ -8,7 +8,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   integrations: [react()],
-  site: "https://ryanshafer.github.io/proto-local-guide/",
-  base: "/proto-local-guide/",
+  site: "https://ryanshafer.github.io/local-guide-admin/",
+  base: "/local-guide-admin/",
   output: "static"
 });

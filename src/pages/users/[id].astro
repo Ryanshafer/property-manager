@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import LocalGuideAdminApp from "@/components/LocalGuideAdminApp";
+import users from "@/data/users.json";
+import type { User } from "@/features/admin/types";
+import { getUserSlug } from "@/features/admin/utils";
+
+export function getStaticPaths() {
+  return (users as User[]).map((user) => ({
+    params: { id: getUserSlug(user) },
+  }));
+}
+---
+
+<BaseLayout title="User · Local Guide Admin" bodyClass="bg-background" showHeader={false} showFooter={false}>
+  <LocalGuideAdminApp slot="main" client:only="react" />
+</BaseLayout>

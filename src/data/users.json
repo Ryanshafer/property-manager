@@ -1,0 +1,95 @@
+[
+  {
+    "id": "manager",
+    "name": "Sam Jackson",
+    "role": "Property Manager",
+    "availability": {
+      "always": true,
+      "days": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+      "start": "00:00",
+      "end": "23:59"
+    },
+    "photo": "https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=240&q=80",
+    "channels": [
+      {
+        "type": "whatsapp",
+        "label": "WhatsApp",
+        "value": "+39 349 887 2213",
+        "action": "https://wa.me/393498872213",
+        "primary": true
+      },
+      {
+        "type": "phone",
+        "label": "Phone",
+        "value": "+39 349 887 2213",
+        "action": "tel:+393498872213"
+      },
+      {
+        "type": "email",
+        "label": "Email",
+        "value": "gianrico.amati@email.com",
+        "action": "mailto:gianrico.amati@email.com"
+      }
+    ]
+  },
+  {
+    "id": "owner",
+    "name": "Sarah Johnson",
+    "role": "Property Owner",
+    "availability": {
+      "always": false,
+      "days": ["mon", "tue", "wed", "thu", "fri"],
+      "start": "09:00",
+      "end": "21:00"
+    },
+    "photo": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80",
+    "channels": [
+      {
+        "type": "whatsapp",
+        "label": "WhatsApp",
+        "value": "+39 (555) 111-2222",
+        "action": "https://wa.me/395551112222",
+        "primary": true
+      },
+      {
+        "type": "phone",
+        "label": "Phone",
+        "value": "+39 (555) 111-2222",
+        "action": "tel:+395551112222"
+      },
+      {
+        "type": "email",
+        "label": "Email",
+        "value": "sarah.johnson@email.com",
+        "action": "mailto:sarah.johnson@email.com"
+      }
+    ]
+  },
+  {
+    "id": "ops",
+    "name": "Marco Riva",
+    "role": "Operations Coordinator",
+    "availability": {
+      "always": false,
+      "days": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+      "start": "11:00",
+      "end": "20:00"
+    },
+    "photo": "https://images.unsplash.com/photo-1529665253569-6d01c0eaf7b6?auto=format&fit=crop&w=240&q=80",
+    "channels": [
+      {
+        "type": "phone",
+        "label": "Desk",
+        "value": "+39 080 220 7655",
+        "action": "tel:+390802207655",
+        "primary": true
+      },
+      {
+        "type": "email",
+        "label": "Email",
+        "value": "marco.riva@email.com",
+        "action": "mailto:marco.riva@email.com"
+      }
+    ]
+  }
+]
