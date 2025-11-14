@@ -40,6 +40,7 @@ export type Assistance = {
     phone?: string;
     email?: string;
     notes?: string;
+    userId?: string;
   }>;
 };
 

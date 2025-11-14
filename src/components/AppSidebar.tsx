@@ -16,7 +16,7 @@ import { useAdmin } from "@/context/AdminProvider";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: LayoutDashboard, label: "Properties", path: "/dashboard" },
   { icon: Users, label: "Users", path: "/users" },
   { icon: Settings, label: "Settings", path: "/settings", disabled: true },
 ];

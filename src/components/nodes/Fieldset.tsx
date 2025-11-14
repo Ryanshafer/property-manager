@@ -1,4 +1,6 @@
 import { forwardRef, useId, type ReactNode } from "react";
+
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export type FieldsetProps = {
@@ -7,6 +9,12 @@ export type FieldsetProps = {
   children: ReactNode;
   titleAdornment?: ReactNode;
   actions?: ReactNode;
+  action?: {
+    label: string;
+    icon?: ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+  };
   className?: string;
   contentClassName?: string;
 };
@@ -18,6 +26,7 @@ const Fieldset = forwardRef<HTMLElement, FieldsetProps>(
     children,
     titleAdornment,
     actions,
+    action,
     className,
     contentClassName,
   }, ref) => {
@@ -39,7 +48,20 @@ const Fieldset = forwardRef<HTMLElement, FieldsetProps>(
                 {title}
               </h3>
             </div>
-            {actions}
+            {actions ??
+              (action ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                >
+                  {action.icon}
+                  {action.label}
+                </Button>
+              ) : null)}
           </div>
           {description && (
             <p id={descriptionId} className="text-body-md text-muted-foreground">

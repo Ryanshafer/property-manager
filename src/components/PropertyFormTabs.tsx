@@ -1,7 +1,8 @@
-import { useState, type FC, type ReactElement } from "react";
+import { useEffect, useMemo, useState, type FC, type ReactElement } from "react";
 
 import AssistanceForm from "@/components/nodes/AssistanceForm";
 import DiscoverForm from "@/components/nodes/DiscoverForm";
+import Fieldset from "@/components/nodes/Fieldset";
 import PropertyCareForm from "@/components/nodes/PropertyCareForm";
 import RulesForm from "@/components/nodes/RulesForm";
 import WelcomeForm from "@/components/nodes/WelcomeForm";
@@ -9,7 +10,7 @@ import WifiForm from "@/components/nodes/WifiForm";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Property } from "@/features/admin/types";
+import type { Property, User } from "@/features/admin/types";
 import { Trash2 } from "lucide-react";
 
 export interface PropertyFormTabsProps {
@@ -18,6 +19,8 @@ export interface PropertyFormTabsProps {
   onDeleteRequest: () => void;
   readOnly?: boolean;
   canDelete?: boolean;
+  showDangerZone?: boolean;
+  users?: User[];
 }
 
 type TabRenderArgs = {
@@ -26,23 +29,31 @@ type TabRenderArgs = {
   onDeleteRequest: () => void;
   readOnly?: boolean;
   canDelete?: boolean;
+  users?: User[];
 };
 
 const tabs: Array<{
   id: string;
   label: string;
+  sectionTitle?: string;
+  sectionDescription?: string;
+  wrapWithFieldset?: boolean;
   render: (args: TabRenderArgs) => ReactElement;
+  requiresAdmin?: boolean;
 }> = [
   {
     id: "welcome",
     label: "Welcome",
-    render: ({ property, onChange, readOnly }) => (
-      <WelcomeForm value={property.welcome} onChange={(data) => onChange("welcome", data)} readOnly={readOnly} />
+    sectionTitle: "Welcome",
+    sectionDescription: "Tailor the greeting, welcome image, and any introductory copy for guests.",
+    render: ({ property, onChange, readOnly, users }) => (
+      <WelcomeForm value={property.welcome} onChange={(data) => onChange("welcome", data)} readOnly={readOnly} users={users} />
     ),
   },
   {
     id: "rules",
     label: "Rules",
+    wrapWithFieldset: false,
     render: ({ property, onChange, readOnly }) => (
       <RulesForm value={property.rules} onChange={(data) => onChange("rules", data)} readOnly={readOnly} />
     ),
@@ -50,6 +61,7 @@ const tabs: Array<{
   {
     id: "wifi",
     label: "Wi-Fi",
+    wrapWithFieldset: false,
     render: ({ property, onChange, readOnly }) => (
       <WifiForm value={property.wifi} onChange={(data) => onChange("wifi", data)} readOnly={readOnly} />
     ),
@@ -57,6 +69,8 @@ const tabs: Array<{
   {
     id: "discover",
     label: "Discover",
+    sectionTitle: "Discover recommendations",
+    sectionDescription: "Search for nearby places and curate the list of experiences you share with guests.",
     render: ({ property, onChange, readOnly }) => (
       <DiscoverForm
         value={property.discover}
@@ -70,13 +84,15 @@ const tabs: Array<{
   {
     id: "assistance",
     label: "Assistance",
-    render: ({ property, onChange, readOnly }) => (
-      <AssistanceForm value={property.assistance} onChange={(data) => onChange("assistance", data)} readOnly={readOnly} />
+    wrapWithFieldset: false,
+    render: ({ property, onChange, readOnly, users }) => (
+      <AssistanceForm value={property.assistance} onChange={(data) => onChange("assistance", data)} readOnly={readOnly} users={users} />
     ),
   },
   {
     id: "care",
     label: "Property care",
+    wrapWithFieldset: false,
     render: ({ property, onChange, readOnly }) => (
       <PropertyCareForm value={property.propertyCare} onChange={(data) => onChange("propertyCare", data)} readOnly={readOnly} />
     ),
@@ -84,6 +100,8 @@ const tabs: Array<{
   {
     id: "danger",
     label: "Danger zone",
+    wrapWithFieldset: false,
+    requiresAdmin: true,
     render: ({ property, onDeleteRequest, readOnly, canDelete }) => (
       <div className="space-y-4 text-destructive">
         <div>
@@ -108,8 +126,20 @@ const PropertyFormTabs: FC<PropertyFormTabsProps> = ({
   onDeleteRequest,
   readOnly,
   canDelete,
+  showDangerZone = false,
+  users,
 }) => {
   const [activeTab, setActiveTab] = useState("welcome");
+  const visibleTabs = useMemo(
+    () => tabs.filter((tab) => (tab.requiresAdmin ? showDangerZone : true)),
+    [showDangerZone],
+  );
+
+  useEffect(() => {
+    if (!visibleTabs.some((tab) => tab.id === activeTab) && visibleTabs.length > 0) {
+      setActiveTab(visibleTabs[0].id);
+    }
+  }, [activeTab, visibleTabs]);
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="space-y-6">
@@ -119,7 +149,7 @@ const PropertyFormTabs: FC<PropertyFormTabsProps> = ({
             <SelectValue placeholder="Select section" />
           </SelectTrigger>
           <SelectContent>
-            {tabs.map((tab) => (
+            {visibleTabs.map((tab) => (
               <SelectItem key={tab.id} value={tab.id}>
                 {tab.label}
               </SelectItem>
@@ -133,7 +163,7 @@ const PropertyFormTabs: FC<PropertyFormTabsProps> = ({
           className="hidden rounded-2xl border border-border bg-card p-2 md:flex md:!h-auto md:w-56 md:flex-col md:gap-2"
           aria-orientation="vertical"
         >
-          {tabs.map((tab) => (
+          {visibleTabs.map((tab) => (
             <TabsTrigger
               key={tab.id}
               value={tab.id}
@@ -145,13 +175,19 @@ const PropertyFormTabs: FC<PropertyFormTabsProps> = ({
         </TabsList>
 
         <div className="flex-1 space-y-6">
-          {tabs.map((tab) => (
+          {visibleTabs.map((tab) => (
             <TabsContent
               key={tab.id}
               value={tab.id}
-              className="mt-0 rounded-2xl border border-border bg-card/80 p-4 shadow-sm md:p-6"
+              className="mt-0 space-y-4"
             >
-              {tab.render({ property: value, onChange: onNodeChange, onDeleteRequest, readOnly, canDelete })}
+              {tab.wrapWithFieldset === false ? (
+                tab.render({ property: value, onChange: onNodeChange, onDeleteRequest, readOnly, canDelete, users })
+              ) : (
+                <Fieldset title={tab.sectionTitle ?? tab.label} description={tab.sectionDescription}>
+                  {tab.render({ property: value, onChange: onNodeChange, onDeleteRequest, readOnly, canDelete, users })}
+                </Fieldset>
+              )}
             </TabsContent>
           ))}
         </div>

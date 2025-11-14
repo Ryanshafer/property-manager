@@ -163,7 +163,7 @@ const UserCardComponent = ({ user, properties, onEdit, onDelete, canEdit = true 
           className="w-full justify-center text-base font-semibold"
           onClick={() => onEdit(user)}
         >
-          View user
+          Edit user
         </Button>
       )}
     </Card>

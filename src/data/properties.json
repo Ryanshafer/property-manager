@@ -7,16 +7,16 @@
     "welcome": {
       "heroImage": "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a",
       "host": {
-        "name": "Marta Bianchi",
-        "title": "Local Host",
-        "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+        "name": "Sam Jackson",
+        "title": "Property Manager",
+        "avatar": "https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=240&q=80"
       },
       "greeting": "Welcome to your Apulian retreat",
       "body": [
         "Relax between citrus trees, stone walls, and the scent of the Mediterranean scrub.",
         "We prepared guides, tips, and thoughtful touches so you can experience Ostuni like a local."
       ],
-      "ctaLabel": "Open guest guide"
+      "ctaLabel": "Let's get started"
     },
     "rules": [
       {
@@ -107,16 +107,16 @@
     "welcome": {
       "heroImage": "https://images.unsplash.com/photo-1505691938895-1758d7feb511",
       "host": {
-        "name": "Alessio & Giulia",
-        "title": "Co-hosts",
-        "avatar": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab"
+        "name": "Sarah Johnson",
+        "title": "Property Owner",
+        "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80"
       },
       "greeting": "Hello from the house of lemons",
       "body": [
         "Bring Puglia's slow rhythm with you.",
         "Use the dashboard to update experiences, contacts, and handoffs for the on-site team."
       ],
-      "ctaLabel": "Manage property"
+      "ctaLabel": "Start exploring"
     },
     "rules": [
       {

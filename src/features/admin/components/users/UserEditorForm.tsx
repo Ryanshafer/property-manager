@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState } from "react";
-import { Clock, MoreVertical, PencilLine, Plus, Star, Trash2, Upload } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Clock, MoreVertical, PencilLine, Plus, Star } from "lucide-react";
 
 import Fieldset from "@/components/nodes/Fieldset";
 import FormRow from "@/components/nodes/FormRow";
+import PhotoUploadDialog from "@/components/nodes/PhotoUploadDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -177,10 +177,7 @@ const UserEditorForm = ({
         .filter(Boolean) as string[],
     [value.managedPropertyIds, properties],
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
-  const [pendingAvatar, setPendingAvatar] = useState<string | null>(null);
-  const [dragging, setDragging] = useState(false);
   const avatarEditable = !readOnly || canEditAvatar;
 
   const update = (patch: Partial<UserFormState>, options?: { bypassReadOnly?: boolean }) => {
@@ -225,28 +222,12 @@ const UserEditorForm = ({
 
   const openAvatarDialog = () => {
     if (!avatarEditable) return;
-    setPendingAvatar(value.photo || null);
     setAvatarDialogOpen(true);
   };
 
-  const handleFileSelection = (file?: File) => {
-    if (!avatarEditable || !file) return;
-    const preview = URL.createObjectURL(file);
-    setPendingAvatar(preview);
-  };
-
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    if (!avatarEditable) return;
-    event.preventDefault();
-    setDragging(false);
-    const file = event.dataTransfer.files?.[0];
-    if (file) handleFileSelection(file);
-  };
-
-  const handleAvatarSave = () => {
-    if (!pendingAvatar || !avatarEditable) return;
-    update({ photo: pendingAvatar }, { bypassReadOnly: readOnly && avatarEditable });
-    setAvatarDialogOpen(false);
+  const handleAvatarSave = (next: string | null) => {
+    if (!avatarEditable || !next) return;
+    update({ photo: next }, { bypassReadOnly: readOnly && avatarEditable });
   };
 
   const toggleDay = (day: Weekday) => {
@@ -534,81 +515,16 @@ const UserEditorForm = ({
         )}
       </Fieldset>
 
-      <Dialog
+      <PhotoUploadDialog
         open={avatarDialogOpen}
-        onOpenChange={(open) => {
-          setAvatarDialogOpen(open);
-          if (!open) {
-            setPendingAvatar(null);
-            setDragging(false);
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update avatar</DialogTitle>
-            <DialogDescription>Upload an image or drag and drop a file to preview.</DialogDescription>
-          </DialogHeader>
-          <div
-            className={cn(
-              "relative flex h-48 w-full items-center justify-center rounded-2xl border-2 border-dashed text-center",
-              dragging ? "border-sidebar-primary bg-sidebar-primary/10" : "border-border bg-muted/20",
-              !avatarEditable && "pointer-events-none opacity-70",
-            )}
-            onDragOver={(event) => {
-              if (!avatarEditable) return;
-              event.preventDefault();
-              setDragging(true);
-            }}
-            onDragLeave={() => avatarEditable && setDragging(false)}
-            onDrop={handleDrop}
-          >
-            {pendingAvatar ? (
-              <>
-                <img src={pendingAvatar} alt="Avatar preview" className="h-full w-full rounded-2xl object-cover" />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="secondary"
-                  className="absolute right-2 top-2 h-8 w-8 rounded-full text-destructive"
-                  onClick={() => avatarEditable && setPendingAvatar(null)}
-                  disabled={!avatarEditable}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <p className="max-w-xs text-sm text-ink-muted">
-                Drop an image here or click “Choose file” to upload.
-              </p>
-            )}
-          </div>
-          <div className="flex w-full items-center justify-between gap-3">
-            <div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                className="gap-2"
-                disabled={!avatarEditable}
-              >
-                <Upload className="h-4 w-4" /> Choose file
-              </Button>
-              <Input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => handleFileSelection(event.target.files?.[0])}
-                disabled={!avatarEditable}
-              />
-            </div>
-            <Button type="button" disabled={!pendingAvatar || !avatarEditable} onClick={handleAvatarSave}>
-              Save avatar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        onOpenChange={setAvatarDialogOpen}
+        title="Update avatar"
+        description="Upload an image or drag and drop a file to preview."
+        initialUrl={value.photo || null}
+        disabled={!avatarEditable}
+        saveLabel="Save avatar"
+        onSave={handleAvatarSave}
+      />
     </>
   );
 };

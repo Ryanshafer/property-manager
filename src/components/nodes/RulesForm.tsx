@@ -1,4 +1,4 @@
-import { useState, useMemo, type ReactElement } from "react";
+import { useState, useMemo, useEffect, type ReactElement } from "react";
 
 import Fieldset from "@/components/nodes/Fieldset";
 import FormRow from "@/components/nodes/FormRow";
@@ -67,6 +67,14 @@ const RuleIconSelector = ({
 };
 
 const RulesForm = ({ value, onChange, readOnly }: RulesFormProps) => {
+  const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!recentlyAddedId) return;
+    const timer = window.setTimeout(() => setRecentlyAddedId(null), 350);
+    return () => window.clearTimeout(timer);
+  }, [recentlyAddedId]);
+
   const handleRuleChange = (index: number, patch: Partial<Rule>) => {
     const next = [...value];
     next[index] = { ...next[index], ...patch };
@@ -80,19 +88,37 @@ const RulesForm = ({ value, onChange, readOnly }: RulesFormProps) => {
 
   const handleAdd = () => {
     if (readOnly) return;
-    onChange([
-      ...value,
-      {
-        id: `rule-${Date.now().toString(36)}`,
-        title: "New rule",
-        details: "Details",
-        icon: "info",
-      },
-    ]);
+    const newRule: Rule = {
+      id: `rule-${Date.now().toString(36)}`,
+      title: "New rule",
+      details: "Details",
+      icon: "info",
+    };
+    onChange([newRule, ...value]);
+    setRecentlyAddedId(newRule.id);
   };
 
   return (
-    <div className="space-y-4">
+    <Fieldset
+      title="House rules"
+      description="Keep property expectations up to date so guests understand how to care for the space."
+      action={
+        !readOnly
+          ? {
+              label: "Add rule",
+              icon: <Plus className="h-4 w-4" />,
+              onClick: handleAdd,
+            }
+          : undefined
+      }
+      contentClassName="space-y-4"
+    >
+      {value.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-border/70 p-6 text-center text-sm text-ink-muted">
+          No rules yet. Add your first rule to set expectations for guests.
+        </div>
+      )}
+
       {value.map((rule, index) => {
         const iconName = rule.icon ? pascalCase(rule.icon) : undefined;
         const IconComponent = iconName
@@ -102,6 +128,7 @@ const RulesForm = ({ value, onChange, readOnly }: RulesFormProps) => {
         return (
           <Fieldset
             key={rule.id}
+            className={recentlyAddedId === rule.id ? "animate-card-enter" : undefined}
             title={rule.title || `Rule ${index + 1}`}
             description="Update the title, icon, and supporting details."
             titleAdornment={
@@ -164,10 +191,7 @@ const RulesForm = ({ value, onChange, readOnly }: RulesFormProps) => {
           </Fieldset>
         );
       })}
-      <Button variant="outline" onClick={handleAdd} disabled={readOnly}>
-        <Plus className="mr-2 h-4 w-4" /> Add rule
-      </Button>
-    </div>
+    </Fieldset>
   );
 };
 

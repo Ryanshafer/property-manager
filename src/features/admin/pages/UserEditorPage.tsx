@@ -62,6 +62,7 @@ const UserEditorPage = ({ mode = "edit" }: UserEditorPageProps) => {
   const sessionIsOps = Boolean(sessionUser && isOperationsCoordinatorRole(sessionUser.role));
   const allowSelfProfileEdit = editingSelf && sessionIsOps;
   const readOnly = permissions.isViewer;
+  const showDangerZone = permissions.isAdmin;
   const canEditName = !readOnly || allowSelfProfileEdit;
   const canEditContacts = !readOnly || allowSelfProfileEdit;
   const canEditAvatar = !readOnly || allowSelfProfileEdit;
@@ -72,12 +73,6 @@ const UserEditorPage = ({ mode = "edit" }: UserEditorPageProps) => {
     setDraft(next);
     setBaseline(next);
   }, [currentUser, isCreate]);
-
-  useEffect(() => {
-    if (activeSection === "managed-properties" && (!canManageProperties || readOnly)) {
-      setActiveSection("user-details");
-    }
-  }, [activeSection, canManageProperties, readOnly]);
 
   const normalize = (state: UserFormState) => ({
     id: state.id,
@@ -155,9 +150,24 @@ const UserEditorPage = ({ mode = "edit" }: UserEditorPageProps) => {
   ];
 
   const visibleSections = useMemo(
-    () => USER_SECTIONS.filter((section) => section.id !== "managed-properties" || (canManageProperties && !readOnly)),
-    [canManageProperties, readOnly],
+    () =>
+      USER_SECTIONS.filter((section) => {
+        if (section.id === "managed-properties") {
+          return canManageProperties && !readOnly;
+        }
+        if (section.id === "danger-zone") {
+          return showDangerZone;
+        }
+        return true;
+      }),
+    [canManageProperties, readOnly, showDangerZone],
   );
+
+  useEffect(() => {
+    if (!visibleSections.some((section) => section.id === activeSection) && visibleSections.length > 0) {
+      setActiveSection(visibleSections[0].id);
+    }
+  }, [activeSection, visibleSections]);
 
   return (
     <div className="flex min-h-dvh bg-surface text-foreground">

@@ -74,6 +74,14 @@ type LegacyGuideline = PropertyCare["guidelines"][number] & {
 };
 
 const PropertyCareForm = ({ value, onChange, readOnly }: PropertyCareFormProps) => {
+  const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!recentlyAddedId) return;
+    const timer = window.setTimeout(() => setRecentlyAddedId(null), 350);
+    return () => window.clearTimeout(timer);
+  }, [recentlyAddedId]);
+
   useEffect(() => {
     const needsMigration = value.guidelines.some((guideline) => "items" in (guideline as LegacyGuideline));
     if (!needsMigration) return;
@@ -116,25 +124,43 @@ const PropertyCareForm = ({ value, onChange, readOnly }: PropertyCareFormProps) 
   const handleAdd = () => {
     if (readOnly) return;
     const preset = PRESET_SECTIONS[0];
+    const newGuideline = {
+      id: `guideline-${Date.now().toString(36)}`,
+      label: preset.label,
+      icon: "sparkles",
+      accent: { iconBg: preset.iconBg, iconColor: preset.iconColor },
+      title: "Care title",
+      description: "Describe the instruction.",
+    };
     onChange({
-      guidelines: [
-        ...value.guidelines,
-        {
-          id: `guideline-${Date.now().toString(36)}`,
-          label: preset.label,
-          icon: "sparkles",
-          accent: { iconBg: preset.iconBg, iconColor: preset.iconColor },
-          title: "Care title",
-          description: "Describe the instruction.",
-        },
-      ],
+      guidelines: [newGuideline, ...value.guidelines],
     });
+    setRecentlyAddedId(newGuideline.id);
   };
 
   return (
-    <div className="space-y-4">
-      {value.guidelines.map((guideline, index) => {
-        const IconComponent =
+    <Fieldset
+      title="Property care"
+      description="Document cleaning rituals, maintenance walkthroughs, and any special instructions."
+      action={
+        !readOnly
+          ? {
+              label: "Add care note",
+              icon: <Plus className="h-4 w-4" />,
+              onClick: handleAdd,
+            }
+          : undefined
+      }
+      contentClassName="space-y-4"
+    >
+      {value.guidelines.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-border/70 p-6 text-center text-sm text-ink-muted">
+          No property care guidance yet. Add your first instruction to help stewards care for the space.
+        </div>
+      )}
+
+        {value.guidelines.map((guideline, index) => {
+          const IconComponent =
           guideline.icon && pascalCase(guideline.icon)
             ? (lucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[pascalCase(guideline.icon)!]
             : undefined;
@@ -147,6 +173,7 @@ const PropertyCareForm = ({ value, onChange, readOnly }: PropertyCareFormProps) 
         return (
           <Fieldset
             key={guideline.id}
+            className={recentlyAddedId === guideline.id ? "animate-card-enter" : undefined}
             title={guideline.title || `Guideline ${index + 1}`}
             description="Provide actionable care instructions for the space."
             titleAdornment={
@@ -247,10 +274,7 @@ const PropertyCareForm = ({ value, onChange, readOnly }: PropertyCareFormProps) 
           </Fieldset>
         );
       })}
-      <Button variant="outline" onClick={handleAdd} disabled={readOnly}>
-        <Plus className="mr-2 h-4 w-4" /> Add guideline
-      </Button>
-    </div>
+    </Fieldset>
   );
 };
 

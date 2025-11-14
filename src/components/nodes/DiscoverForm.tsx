@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { DiscoverCard, DiscoverCategory } from "@/features/admin/types";
-import { Loader2, MapPin, Plus, Search, Trash2, X } from "lucide-react";
+import { ExternalLink, Loader2, MapPin, MoreVertical, Plus, Search, X } from "lucide-react";
 
 declare global {
   interface Window {
@@ -129,24 +135,38 @@ const DiscoverForm = ({ value, onChange, coordinates, location, readOnly = false
 
   useEffect(() => {
     if (!placesService || !mapsApi) return;
-    const missing = value.map((entry) => entry.placeId).filter((placeId) => !placeMeta[placeId]);
+    const missing = value
+      .map((entry) => entry.placeId)
+      .filter((placeId) => {
+        const summary = placeMeta[placeId];
+        return !summary || (!summary.photoThumb && !(summary.photos?.length));
+      });
     if (!missing.length) return;
 
     let cancelled = false;
     const handlePlaceSummary = (placeId: string): PlaceDetailsCallback => (result, status) => {
       if (cancelled) return;
       if (status !== "OK" || !result) return;
+      const photoUrls =
+        result.photos?.map((photo) => photo.getUrl({ maxWidth: 640, maxHeight: 640 })).filter(Boolean) ?? [];
       setPlaceMeta((prev) => ({
         ...prev,
         [placeId]: {
           name: result.name,
           address: result.formatted_address,
+          rating: result.rating,
+          userRatingsTotal: result.user_ratings_total,
+          photoThumb: photoUrls[0],
+          photos: photoUrls,
         },
       }));
     };
 
     missing.forEach((placeId) => {
-      placesService.getDetails({ placeId, fields: ["name", "formatted_address"] }, handlePlaceSummary(placeId));
+      placesService.getDetails(
+        { placeId, fields: ["name", "formatted_address", "photos", "rating", "user_ratings_total"] },
+        handlePlaceSummary(placeId),
+      );
     });
 
     return () => {
@@ -198,9 +218,17 @@ const DiscoverForm = ({ value, onChange, coordinates, location, readOnly = false
       if (!placesService) return;
       const handlePhotos = (placeId: string): PlaceDetailsCallback => (detail, detailStatus) => {
         if (!mapsApi) return;
-        if (detailStatus !== "OK" || !detail?.photos?.length) return;
-        const photoUrls = detail.photos.map((photo) => photo.getUrl({ maxWidth: 640, maxHeight: 640 })).filter(Boolean);
-        const thumb = detail.photos[0]?.getUrl({ maxWidth: 120, maxHeight: 120 });
+        if (detailStatus !== "OK" || !detail) return;
+        const loc = detail.geometry?.location;
+        if (loc) {
+          const distanceKm = distanceInKm(searchCenter, { lat: loc.lat(), lng: loc.lng() });
+          if (distanceKm > searchRadiusKm) {
+            setResults((prev) => prev.filter((item) => item.place_id !== placeId));
+            return;
+          }
+        }
+        const photoUrls = detail.photos?.map((photo) => photo.getUrl({ maxWidth: 640, maxHeight: 640 })).filter(Boolean) ?? [];
+        const thumb = detail.photos?.[0]?.getUrl({ maxWidth: 120, maxHeight: 120 });
         setResults((prev) =>
           prev.map((item) =>
             item.place_id === placeId ? { ...item, photoUrl: thumb || item.photoUrl, photos: photoUrls } : item,
@@ -209,14 +237,18 @@ const DiscoverForm = ({ value, onChange, coordinates, location, readOnly = false
       };
 
       baseResults.forEach((result) => {
-        placesService.getDetails({ placeId: result.place_id, fields: ["photos"] }, handlePhotos(result.place_id));
+        placesService.getDetails(
+          { placeId: result.place_id, fields: ["photos", "geometry"] },
+          handlePhotos(result.place_id),
+        );
       });
     };
 
     autocompleteService.getPlacePredictions(
       {
-        input: location ? `${trimmed} near ${location}` : trimmed,
+        input: trimmed,
         locationBias,
+        strictBounds: true,
       },
       handlePredictions,
     );
@@ -251,7 +283,14 @@ const DiscoverForm = ({ value, onChange, coordinates, location, readOnly = false
     onChange([entry, ...value]);
     setPlaceMeta((prev) => ({
       ...prev,
-      [place.place_id]: { name: place.primary_text, address: place.description },
+      [place.place_id]: {
+        name: place.primary_text,
+        address: place.description,
+        rating: undefined,
+        userRatingsTotal: undefined,
+        photoThumb: place.photoUrl,
+        photos: place.photos,
+      },
     }));
     setResults([]);
     setQuery("");
@@ -270,45 +309,49 @@ const DiscoverForm = ({ value, onChange, coordinates, location, readOnly = false
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-border bg-muted/20 p-4">
-        <form onSubmit={handleSearch} className="flex flex-col gap-3 md:flex-row">
+      <section className="rounded-2xl border border-border bg-muted p-4">
+        <form className="flex flex-col gap-3 md:flex-row" onSubmit={(event) => event.preventDefault()}>
           <div className="flex-1">
             <label className="text-sm font-medium text-ink-strong">Add a new location</label>
             <div className="mt-1 flex items-center gap-2">
               <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
                 <Input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search nearby spots"
-                  className="pr-9"
+                  className="pl-9 pr-9 bg-white"
                   disabled={isReadOnly}
                 />
-                {query && (
-                  <button
-                    type="button"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-muted"
-                    onClick={() => {
-                      setQuery("");
-                      setResults([]);
-                      setError(null);
-                    }}
-                    aria-label="Clear search"
-                    disabled={isReadOnly}
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
+                <div className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center">
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-ink-muted" />
+                  ) : (
+                    query && (
+                      <button
+                        type="button"
+                        className="flex h-full w-full items-center justify-center rounded-full text-ink-muted transition hover:text-ink-strong"
+                        onClick={() => {
+                          setQuery("");
+                          setResults([]);
+                          setError(null);
+                        }}
+                        aria-label="Clear search"
+                        disabled={isReadOnly}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )
+                  )}
+                </div>
               </div>
-              <Button type="submit" disabled={loading || !autocompleteService || isReadOnly} className="gap-2">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Search
-              </Button>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-ink-muted">
               <p>
                 Limit results to {location || "the property location"} within:
               </p>
               <Select value={String(searchRadiusKm)} onValueChange={handleRadiusChange}>
-                <SelectTrigger className="h-7 w-24 text-xs" disabled={isReadOnly}>
+                <SelectTrigger className="h-7 w-24 text-xs bg-white" disabled={isReadOnly}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent align="start">
@@ -370,22 +413,73 @@ const DiscoverForm = ({ value, onChange, coordinates, location, readOnly = false
         )}
         {value.map((entry) => {
           const meta = placeMeta[entry.placeId];
+          const searchResult = results.find((result) => result.place_id === entry.placeId);
+          const entryPhotos = meta?.photos?.length ? meta.photos : searchResult?.photos || [];
+          const photoThumb = meta?.photoThumb ?? searchResult?.photoUrl;
           return (
             <div key={entry.id} className="space-y-4 rounded-2xl border border-border bg-card/80 p-4">
-              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-base font-semibold text-ink-strong">{meta?.name || "Unknown place"}</p>
-                  <p className="text-sm text-ink-muted">{meta?.address || "Address unavailable"}</p>
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="h-16 w-16 flex-none overflow-hidden rounded-xl border border-border/70 bg-muted"
+                    onClick={() =>
+                      entryPhotos.length &&
+                      setPhotoViewer({
+                        placeId: entry.placeId,
+                        urls: entryPhotos,
+                        index: 0,
+                        title: meta?.name,
+                      })
+                    }
+                    disabled={!entryPhotos.length}
+                  >
+                    {photoThumb ? (
+                      <img src={photoThumb} alt={meta?.name || "Preview"} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-ink-muted">No photo</div>
+                    )}
+                  </button>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-base font-semibold text-ink-strong">{meta?.name || "Unknown place"}</p>
+                      {meta?.rating && (
+                        <span className="text-sm font-medium text-ink-muted">
+                          ★ {meta.rating.toFixed(1)}
+                          {meta.userRatingsTotal ? ` (${meta.userRatingsTotal})` : ""}
+                        </span>
+                      )}
+                    </div>
+                    {meta?.address ? (
+                      <a
+                        href={`https://www.google.com/maps/place/?q=place_id:${entry.placeId}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 text-sm font-medium text-sidebar-primary hover:underline"
+                      >
+                        <MapPin className="h-4 w-4" />
+                        {meta.address}
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    ) : (
+                      <p className="text-sm text-ink-muted">Address unavailable</p>
+                    )}
+                  </div>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="gap-2 text-sidebar-primary"
-                  onClick={() => window.open(`https://www.google.com/maps/place/?q=place_id:${entry.placeId}`, "_blank", "noopener")}
-                >
-                  <MapPin className="h-4 w-4" /> View in Google Maps
-                </Button>
+                {!isReadOnly && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 border border-border">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem className="text-destructive" onClick={() => handleRemove(entry.id)}>
+                        Remove location
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -419,17 +513,6 @@ const DiscoverForm = ({ value, onChange, coordinates, location, readOnly = false
                     disabled={isReadOnly}
                   />
                 </div>
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive"
-                  onClick={() => handleRemove(entry.id)}
-                  disabled={isReadOnly}
-                >
-                  <Trash2 className="h-4 w-4" /> Remove
-                </Button>
               </div>
             </div>
           );
@@ -516,15 +599,44 @@ type PlaceDetailsResult = {
   name?: string;
   formatted_address?: string;
   photos?: PlacePhoto[];
+  rating?: number;
+  user_ratings_total?: number;
+  geometry?: {
+    location?: {
+      lat: () => number;
+      lng: () => number;
+    };
+  };
 };
 
 type GeocodeCallback = (results: GeocoderResult[] | null, status: GeocoderStatus) => void;
 type PlaceDetailsCallback = (result: PlaceDetailsResult | null, status: PlacesServiceStatus) => void;
 type PredictionsCallback = (predictions: GoogleAutocompletePrediction[] | null, status: PlacesServiceStatus) => void;
 
+const toRadians = (value: number) => (value * Math.PI) / 180;
+
+const distanceInKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+  const earthRadiusKm = 6371;
+  const dLat = toRadians(b.lat - a.lat);
+  const dLng = toRadians(b.lng - a.lng);
+  const lat1 = toRadians(a.lat);
+  const lat2 = toRadians(b.lat);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const h =
+    sinLat * sinLat +
+    sinLng * sinLng * Math.cos(lat1) * Math.cos(lat2);
+  const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  return earthRadiusKm * c;
+};
+
 interface PlaceSummary {
   name?: string;
   address?: string;
+  rating?: number;
+  userRatingsTotal?: number;
+  photoThumb?: string;
+  photos?: string[];
 }
 
 type PhotoViewerProps = {

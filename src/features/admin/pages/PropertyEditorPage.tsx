@@ -25,7 +25,7 @@ import { useAdmin } from "@/context/AdminProvider";
 const PropertyEditorPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { properties, selectProperty, updateProperty, exportProperty, deleteProperty, permissions } = useAdmin();
+  const { properties, selectProperty, updateProperty, exportProperty, deleteProperty, permissions, users } = useAdmin();
   const property = useMemo(() => properties.find((item) => item.id === id), [properties, id]);
   const [draft, setDraft] = useState<Property | null>(property ?? null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -139,6 +139,10 @@ const PropertyEditorPage = () => {
             value={draft}
             onNodeChange={handleNodeChange}
             onDeleteRequest={() => setDeleteOpen(true)}
+            readOnly={readOnly}
+            canDelete={canDelete}
+            showDangerZone={permissions.isAdmin}
+            users={users}
           />
         </main>
       </div>
