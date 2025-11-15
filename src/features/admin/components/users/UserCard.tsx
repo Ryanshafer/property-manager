@@ -111,27 +111,25 @@ const UserCardComponent = ({ user, properties, onEdit, onDelete, canEdit = true 
               </div>
             );
 
-            if (channel.type === "email" && channel.action) {
-              return (
-                <a
-                  key={`${channel.type}-${channel.value}`}
-                  href={channel.action}
-                  className="flex items-center justify-between rounded-2xl border border-border/70 bg-muted/30 px-3 py-2 text-sm transition hover:bg-muted/60"
-                >
-                  {content}
-                  {channel.primary && <Badge variant="secondary">Primary</Badge>}
-                </a>
-              );
-            }
+            const isClickable = Boolean(channel.action);
+            const Wrapper: React.ElementType = isClickable ? "a" : "div";
+            const wrapperProps = isClickable
+              ? {
+                  href: channel.action,
+                  target: channel.action?.startsWith("http") ? "_blank" : undefined,
+                  rel: channel.action?.startsWith("http") ? "noreferrer" : undefined,
+                }
+              : {};
 
             return (
-              <div
+              <Wrapper
                 key={`${channel.type}-${channel.value}`}
-                className="flex items-center justify-between rounded-2xl border border-border/70 bg-muted/30 px-3 py-2 text-sm"
+                className="flex items-center justify-between rounded-2xl border border-border/70 bg-muted/30 px-3 py-2 text-sm transition hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                {...wrapperProps}
               >
                 {content}
                 {channel.primary && <Badge variant="secondary">Primary</Badge>}
-              </div>
+              </Wrapper>
             );
           })}
           {user.channels.length === 0 && (
@@ -158,9 +156,9 @@ const UserCardComponent = ({ user, properties, onEdit, onDelete, canEdit = true 
 
       {canEdit && (
         <Button
-          variant="default"
+          variant="outline"
           size="lg"
-          className="w-full justify-center text-base font-semibold"
+          className="w-full justify-center gap-2 text-base"
           onClick={() => onEdit(user)}
         >
           Edit user

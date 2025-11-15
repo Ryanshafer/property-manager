@@ -1,17 +1,18 @@
-import { useEffect, useMemo, useState, type FC, type ReactElement } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState, type FC, type ReactElement } from "react";
 
-import AssistanceForm from "@/components/nodes/AssistanceForm";
-import DiscoverForm from "@/components/nodes/DiscoverForm";
 import Fieldset from "@/components/nodes/Fieldset";
-import PropertyCareForm from "@/components/nodes/PropertyCareForm";
-import RulesForm from "@/components/nodes/RulesForm";
-import WelcomeForm from "@/components/nodes/WelcomeForm";
-import WifiForm from "@/components/nodes/WifiForm";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Property, User } from "@/features/admin/types";
 import { Trash2 } from "lucide-react";
+
+const WelcomeForm = lazy(() => import("@/components/nodes/WelcomeForm"));
+const RulesForm = lazy(() => import("@/components/nodes/RulesForm"));
+const WifiForm = lazy(() => import("@/components/nodes/WifiForm"));
+const DiscoverForm = lazy(() => import("@/components/nodes/DiscoverForm"));
+const AssistanceForm = lazy(() => import("@/components/nodes/AssistanceForm"));
+const PropertyCareForm = lazy(() => import("@/components/nodes/PropertyCareForm"));
 
 export interface PropertyFormTabsProps {
   value: Property;
@@ -181,13 +182,21 @@ const PropertyFormTabs: FC<PropertyFormTabsProps> = ({
               value={tab.id}
               className="mt-0 space-y-4"
             >
-              {tab.wrapWithFieldset === false ? (
-                tab.render({ property: value, onChange: onNodeChange, onDeleteRequest, readOnly, canDelete, users })
-              ) : (
-                <Fieldset title={tab.sectionTitle ?? tab.label} description={tab.sectionDescription}>
-                  {tab.render({ property: value, onChange: onNodeChange, onDeleteRequest, readOnly, canDelete, users })}
-                </Fieldset>
-              )}
+              <Suspense
+                fallback={
+                  <div className="rounded-2xl border border-dashed border-border/70 p-6 text-sm text-ink-muted">
+                    Loading {tab.label}…
+                  </div>
+                }
+              >
+                {tab.wrapWithFieldset === false ? (
+                  tab.render({ property: value, onChange: onNodeChange, onDeleteRequest, readOnly, canDelete, users })
+                ) : (
+                  <Fieldset title={tab.sectionTitle ?? tab.label} description={tab.sectionDescription}>
+                    {tab.render({ property: value, onChange: onNodeChange, onDeleteRequest, readOnly, canDelete, users })}
+                  </Fieldset>
+                )}
+              </Suspense>
             </TabsContent>
           ))}
         </div>

@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Save, Trash2 } from "lucide-react";
 
 import AppSidebar from "@/components/AppSidebar";
 import PageHeader from "@/components/PageHeader";
-import PropertyFormTabs from "@/components/PropertyFormTabs";
+const PropertyFormTabs = lazy(() => import("@/components/PropertyFormTabs"));
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -44,7 +44,7 @@ const PropertyEditorPage = () => {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-background text-center">
         <p className="text-lg font-semibold">Property not found</p>
-        <Button variant="link" onClick={() => navigate("/dashboard")}>Back to dashboard</Button>
+        <Button variant="link" onClick={() => navigate("/properties")}>Back to properties</Button>
       </div>
     );
   }
@@ -80,7 +80,7 @@ const PropertyEditorPage = () => {
     deleteProperty(draft.id);
     toast.success(`${draft.name} deleted`);
     setDeleteOpen(false);
-    navigate("/dashboard");
+    navigate("/properties");
   };
 
   return (
@@ -98,7 +98,7 @@ const PropertyEditorPage = () => {
           title={draft.name}
           description={`Last update ${formatUpdatedAt(draft.updatedAt)}`}
           breadcrumbs={[
-            { label: "Dashboard", href: "/dashboard" },
+            { label: "Properties", href: "/properties" },
             { label: draft.name },
           ]}
           actions={
@@ -135,15 +135,23 @@ const PropertyEditorPage = () => {
               </div>
             </div>
           </section>
-          <PropertyFormTabs
-            value={draft}
-            onNodeChange={handleNodeChange}
-            onDeleteRequest={() => setDeleteOpen(true)}
-            readOnly={readOnly}
-            canDelete={canDelete}
-            showDangerZone={permissions.isAdmin}
-            users={users}
-          />
+          <Suspense
+            fallback={
+              <div className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-ink-muted">
+                Loading property sections…
+              </div>
+            }
+          >
+            <PropertyFormTabs
+              value={draft}
+              onNodeChange={handleNodeChange}
+              onDeleteRequest={() => setDeleteOpen(true)}
+              readOnly={readOnly}
+              canDelete={canDelete}
+              showDangerZone={permissions.isAdmin}
+              users={users}
+            />
+          </Suspense>
         </main>
       </div>
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

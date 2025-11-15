@@ -79,7 +79,7 @@
     "channels": [
       {
         "type": "phone",
-        "label": "Desk",
+        "label": "Phone",
         "value": "+39 080 220 7655",
         "action": "tel:+390802207655",
         "primary": true

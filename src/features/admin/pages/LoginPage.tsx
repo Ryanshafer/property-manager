@@ -28,7 +28,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (authed) {
-      navigate("/dashboard", { replace: true });
+      navigate("/properties", { replace: true });
     }
   }, [authed, navigate]);
 
@@ -53,7 +53,7 @@ const LoginPage = () => {
       email: values.email,
     });
     toast.success(`Welcome back, ${selectedUser.name}`);
-    navigate("/dashboard");
+    navigate("/properties");
   });
 
   return (

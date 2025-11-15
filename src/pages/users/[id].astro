@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import LocalGuideAdminApp from "@/components/LocalGuideAdminApp";
+import AdminAppShell from "@/components/AdminAppShell.astro";
 import users from "@/data/users.json";
 import type { User } from "@/features/admin/types";
 import { getUserSlug } from "@/features/admin/utils";
@@ -13,5 +13,5 @@ export function getStaticPaths() {
 ---
 
 <BaseLayout title="User · Local Guide Admin" bodyClass="bg-background" showHeader={false} showFooter={false}>
-  <LocalGuideAdminApp slot="main" client:only="react" />
+  <AdminAppShell slot="main" />
 </BaseLayout>

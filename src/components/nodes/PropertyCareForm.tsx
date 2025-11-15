@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
 import Fieldset from "@/components/nodes/Fieldset";
-import IconPicker from "@/components/IconPicker";
+import { Suspense, lazy } from "react";
+const IconPicker = lazy(() => import("@/components/IconPicker"));
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -68,13 +69,15 @@ const IconPickerTrigger = ({ value, onSelect, disabled }: { value?: string; onSe
         <DialogHeader>
           <DialogTitle>Pick an icon</DialogTitle>
         </DialogHeader>
-        <IconPicker
-          value={value}
-          onSelect={(icon) => {
-            onSelect(icon);
-            setOpen(false);
-          }}
-        />
+        <Suspense fallback={<div className="h-[460px] w-full rounded-xl border border-dashed border-border/70 p-6 text-center text-sm text-ink-muted">Loading icons…</div>}>
+          <IconPicker
+            value={value}
+            onSelect={(icon) => {
+              onSelect(icon);
+              setOpen(false);
+            }}
+          />
+        </Suspense>
       </DialogContent>
     </Dialog>
   );

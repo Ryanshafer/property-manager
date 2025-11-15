@@ -144,7 +144,7 @@ const UserEditorPage = ({ mode = "edit" }: UserEditorPageProps) => {
 
   const title = isCreate ? "Add user" : currentUser?.name || "Team member";
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Properties", href: "/properties" },
     { label: "Users", href: "/users" },
     { label: isCreate ? "Add user" : currentUser?.name || "Edit" },
   ];

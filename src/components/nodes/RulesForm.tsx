@@ -4,7 +4,14 @@ import Fieldset from "@/components/nodes/Fieldset";
 import FormRow from "@/components/nodes/FormRow";
 import IconPicker from "@/components/IconPicker";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +60,7 @@ const RuleIconSelector = ({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Pick an icon</DialogTitle>
+          <DialogDescription>Select an icon to associate with this rule.</DialogDescription>
         </DialogHeader>
         <IconPicker
           value={value}

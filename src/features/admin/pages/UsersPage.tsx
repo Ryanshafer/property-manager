@@ -49,12 +49,12 @@ const UsersPage = () => {
           title="Users"
           description={`${userList.length} teammates • ${totalManagers} property manager${totalManagers === 1 ? "" : "s"}`}
           breadcrumbs={[
-            { label: "Dashboard", href: "/dashboard" },
+            { label: "Properties", href: "/properties" },
             { label: "Users" },
           ]}
           actions={
             permissions.canManageUsers ? (
-              <Button variant="outline" className="gap-2 px-4 font-semibold text-ink-strong" onClick={() => navigate("/users/new")}>
+              <Button variant="outline" className="gap-2 px-4 text-base text-ink-strong" onClick={() => navigate("/users/new")}>
                 <UserPlus className="h-4 w-4" />
                 Add user
               </Button>

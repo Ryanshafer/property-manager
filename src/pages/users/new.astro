@@ -1,8 +1,8 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import LocalGuideAdminApp from "@/components/LocalGuideAdminApp";
+import AdminAppShell from "@/components/AdminAppShell.astro";
 ---
 
 <BaseLayout title="New User · Local Guide Admin" bodyClass="bg-background" showHeader={false} showFooter={false}>
-  <LocalGuideAdminApp slot="main" client:only="react" />
+  <AdminAppShell slot="main" />
 </BaseLayout>
