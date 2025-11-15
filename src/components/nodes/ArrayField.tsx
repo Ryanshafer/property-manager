@@ -15,6 +15,8 @@ export type ArrayFieldProps = {
   disabled?: boolean;
   className?: string;
   emptyHint?: string;
+  addLabel?: string;
+  maxItems?: number;
 };
 
 const ArrayFieldComponent = ({
@@ -26,9 +28,12 @@ const ArrayFieldComponent = ({
   disabled = false,
   className,
   emptyHint = "No items yet. Add one below.",
+  addLabel = "Add item",
+  maxItems,
 }: ArrayFieldProps) => {
   const controlId = useId();
   const Component = multiline ? Textarea : Input;
+  const canAddMore = !disabled && (typeof maxItems !== "number" || values.length < maxItems);
 
   const handleValueChange = useCallback(
     (index: number, value: string) => {
@@ -47,7 +52,7 @@ const ArrayFieldComponent = ({
   );
 
   const handleAdd = () => {
-    if (disabled) return;
+    if (!canAddMore) return;
     onChange([...values, ""]);
   };
 
@@ -80,9 +85,11 @@ const ArrayFieldComponent = ({
           </div>
         ))}
       </div>
-      <Button type="button" variant="outline" size="sm" onClick={handleAdd} disabled={disabled}>
-        <Plus className="mr-2 h-4 w-4" /> Add item
-      </Button>
+      {canAddMore && (
+        <Button type="button" variant="outline" size="sm" onClick={handleAdd} disabled={disabled}>
+          <Plus className="mr-2 h-4 w-4" /> {addLabel}
+        </Button>
+      )}
     </div>
   );
 };

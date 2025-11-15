@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { PropertyCare } from "@/features/admin/types";
 import { MoreVertical, PencilLine, Plus } from "lucide-react";
 import * as lucideIcons from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +29,16 @@ const pascalCase = (icon?: string) =>
     ?.split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join("");
+
+const isLucideIcon = (component: unknown): component is LucideIcon => typeof component === "function";
+
+const resolveLucideIcon = (icon?: string): LucideIcon | undefined => {
+  if (!icon) return undefined;
+  const name = pascalCase(icon);
+  if (!name) return undefined;
+  const entry = (lucideIcons as Record<string, unknown>)[name];
+  return isLucideIcon(entry) ? entry : undefined;
+};
 
 const PRESET_SECTIONS = [
   { id: "general", label: "General", iconBg: "bg-violet-100", iconColor: "text-violet-600" },
@@ -73,6 +84,9 @@ type LegacyGuideline = PropertyCare["guidelines"][number] & {
   items?: Array<{ title: string; description: string }>;
 };
 
+const hasLegacyItems = (guideline: PropertyCare["guidelines"][number]): guideline is LegacyGuideline =>
+  Array.isArray((guideline as LegacyGuideline).items);
+
 const PropertyCareForm = ({ value, onChange, readOnly }: PropertyCareFormProps) => {
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
 
@@ -83,13 +97,12 @@ const PropertyCareForm = ({ value, onChange, readOnly }: PropertyCareFormProps) 
   }, [recentlyAddedId]);
 
   useEffect(() => {
-    const needsMigration = value.guidelines.some((guideline) => "items" in (guideline as LegacyGuideline));
+    const needsMigration = value.guidelines.some(hasLegacyItems);
     if (!needsMigration) return;
 
     const migrated = value.guidelines
       .flatMap((guideline) => {
-        const legacyItems = (guideline as LegacyGuideline).items;
-        if (!legacyItems?.length) {
+        if (!hasLegacyItems(guideline) || !guideline.items?.length) {
           return {
             ...guideline,
             title: guideline.title || "Care title",
@@ -97,11 +110,13 @@ const PropertyCareForm = ({ value, onChange, readOnly }: PropertyCareFormProps) 
           };
         }
 
-        return legacyItems.map((item, itemIndex) => ({
-          ...guideline,
+        return guideline.items.map((item, itemIndex) => ({
           id: `${guideline.id}-${itemIndex}`,
           title: item.title,
           description: item.description,
+          label: guideline.label,
+          icon: guideline.icon,
+          accent: guideline.accent,
         }));
       })
       .map(({ items, ...rest }) => rest);
@@ -160,10 +175,7 @@ const PropertyCareForm = ({ value, onChange, readOnly }: PropertyCareFormProps) 
       )}
 
         {value.guidelines.map((guideline, index) => {
-          const IconComponent =
-          guideline.icon && pascalCase(guideline.icon)
-            ? (lucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[pascalCase(guideline.icon)!]
-            : undefined;
+        const IconComponent = resolveLucideIcon(guideline.icon);
 
         const selectedPreset = PRESET_SECTIONS.find((preset) => preset.label === guideline.label);
 

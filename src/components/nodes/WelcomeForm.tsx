@@ -48,11 +48,13 @@ const WelcomeForm = ({ value, onChange, readOnly, users }: WelcomeFormProps) => 
     <div className="space-y-6">
       <Fieldset title="Welcome image" description="Update the welcome image, host, and greeting.">
         <div className="space-y-4">
-          <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-muted">
+          <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-muted aspect-[2/1]">
             {heroImage ? (
-              <img src={heroImage} alt={value.host.name || "Welcome image"} className="h-64 w-full object-cover" />
+              <img src={heroImage} alt={value.host.name || "Welcome image"} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-64 items-center justify-center text-sm text-ink-muted">Add a welcome image to greet guests</div>
+              <div className="flex h-full w-full items-center justify-center text-sm text-ink-muted">
+                Add a welcome image to greet guests
+              </div>
             )}
             {!readOnly && (
               <Button
@@ -93,6 +95,9 @@ const WelcomeForm = ({ value, onChange, readOnly, users }: WelcomeFormProps) => 
           placeholder="Write one paragraph at a time"
           onChange={(body) => handleChange("body", body)}
           disabled={readOnly}
+          addLabel="Add paragraph"
+          maxItems={2}
+          emptyHint="Add up to two intro paragraphs."
         />
         <FormRow label="Button action text">
           <Input value={value.ctaLabel || ""} onChange={(event) => handleChange("ctaLabel", event.target.value)} disabled={readOnly} />

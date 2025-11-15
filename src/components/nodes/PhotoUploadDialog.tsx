@@ -80,7 +80,7 @@ const PhotoUploadDialog = ({
         </DialogHeader>
         <div
           className={cn(
-            "relative flex h-48 w-full items-center justify-center rounded-2xl border-2 border-dashed text-center",
+            "relative aspect-[2/1] w-full overflow-hidden rounded-2xl border-2 border-dashed text-center",
             dragging ? "border-sidebar-primary bg-sidebar-primary/10" : "border-border bg-muted/20",
             disabled && "pointer-events-none opacity-70",
           )}
@@ -94,7 +94,7 @@ const PhotoUploadDialog = ({
         >
           {previewUrl ? (
             <>
-              <img src={previewUrl} alt="Preview" className="h-full w-full rounded-2xl object-cover" />
+              <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
               <Button
                 type="button"
                 size="icon"
@@ -107,7 +107,9 @@ const PhotoUploadDialog = ({
               </Button>
             </>
           ) : (
-            <p className="max-w-xs text-sm text-ink-muted">Drop an image here or click “Choose file” to upload.</p>
+            <div className="flex h-full w-full items-center justify-center px-4">
+              <p className="max-w-xs text-sm text-ink-muted">Drop an image here or click “Choose file” to upload.</p>
+            </div>
           )}
         </div>
         <div className="flex w-full items-center justify-between gap-3">
