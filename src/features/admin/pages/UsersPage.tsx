@@ -64,7 +64,7 @@ const UsersPage = () => {
         />
 
         <main className="space-y-6 px-4 py-6 md:px-8">
-          <section className="grid gap-4 lg:grid-cols-2">
+          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {userList.map((user) => {
               const isSelf = sessionUser?.id === user.id;
               const canEditUser = !permissions.isViewer || (permissions.isViewer && sessionIsOps && isSelf);
